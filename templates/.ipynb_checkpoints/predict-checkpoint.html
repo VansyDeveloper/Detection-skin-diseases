@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Результат предсказания нейронной сети.</title>
+        <link rel="stylesheet" href="static/style.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </head>
+    <body>
+        <section class="main" >
+            <div class="navigation">
+                <div class="button back" onclick="window.location='/'"></div>
+                <div class="logo">Результат</div>
+            </div>
+            <div class="content">
+                <div class="cards_area">
+                    {{content|safe}}
+                </div>
+            </div>
+        </section>
+    </body>
+</html>
