@@ -1,0 +1,183 @@
+:root {
+    --background-color: #222;
+    --body-background-color: #333;
+    --body-background-color-secondary: #222;
+    --body-color: #EEE;
+    --button-background-color: darkcyan;
+    --button-color: white;
+
+    --card-background-color: #444;
+    --card-color: #888;
+
+    --green-text: #8F0;
+    --light-gray-text: #AAA;
+}
+
+.light-gray-text {
+    color: var(--light-gray-text)
+}
+
+.green-text {
+    color: var(--green-text)
+}
+
+@font-face {
+    font-family: 'Involve';
+    src: url('fonts/Involve-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Involve';
+    src: url('fonts/Involve-Bold.ttf');
+    font-weight: bold;
+    font-style: normal;
+}
+
+html, body {
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+    font-family: "Involve";
+    font-size: 18px;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--body-color);
+}
+
+.main {
+    contain: content;
+    box-sizing: border-box;
+    max-width: 960px;
+    margin: 0px auto;
+    /* height: 100%; */
+    padding: 20px;
+    background-color: var(--body-background-color);
+    min-height: 100%;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.main .content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    contain: content;
+    box-sizing: border-box;
+    height: 100%;
+    gap: 20px;
+}
+
+/* Navigation */
+
+.navigation {
+    display: flex;
+    padding: 10px;
+    font-size: 1.2em;
+}
+
+.navigation .logo {
+    flex: 1 1 auto;
+    align-self: center;
+    text-align: right;
+}
+
+.navigation .button {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+}
+
+.navigation .back {
+    background-image: url("icons/back.png");
+    background-position: center center;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+/* */
+
+#files {
+    display: none;
+}
+
+.upload_files {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.select_files_area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1 1 auto;
+    background-color: #222;
+}
+
+.select_files_area #num_files{
+    padding-top: 10px;
+    color: #AAA;
+}
+
+.select_files_button {
+    display: inline-block;
+    background-color: var(--button-background-color);
+    color: var(--button-color);
+    padding: 20px;
+}
+
+.send_button_area {
+    display: flex;
+    flex: 0 0 auto;
+}
+
+.send_button {
+    all:unset;
+    flex: 1 1 auto;
+    text-align: center;
+    background-color: var(--button-background-color);
+    color: var(--button-color);
+    padding: 20px;
+    display: flex;
+}
+
+/* Card */
+
+.cards_area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 10px;
+}
+
+.card {
+    background-color: var(--card-background-color);
+    color: --var(--card-color);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.card .image_area {
+    margin-bottom: 20px;
+}
+
+.card .content {
+    all: unset;
+    display: flex;
+    flex-direction: column;
+}
+
+.card .prediction {
+    display: block;
+}
+
+.card .predicted_value {
+    display: block; 
+}
