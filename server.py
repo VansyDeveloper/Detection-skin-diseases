@@ -13,15 +13,14 @@ from src.model import Model
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Названия категории.
-CLASSES = [
+CATEGORIES = [
     "Угревая сыпь или розацея.",
     "Актинический кератоз, базалиома и другие злокачественные новообразования.",
     "Атопический дерматит.",
-    "Диагноз не установлен.",
 ]
 
 # Количество классов которые предсказывает модель.
-NUM_CLASSES = 4
+NUM_CLASSES = 3
 
 # Размер образца.
 SAMPLE_SIZE = 128
@@ -72,7 +71,7 @@ model = Model(
     affine=AFFINE,
 ).to(DEVICE)
 
-checkpoint = torch.load("./model.pt", weights_only = True)
+checkpoint = torch.load("./model.pt", map_location=DEVICE, weights_only = True)
 model.load_state_dict(checkpoint['model.state_dict'])
 
 model.eval()
@@ -126,17 +125,10 @@ def predict():
         t = t.to(DEVICE)
         t = t.unsqueeze(dim=0)
 
+        # with torch.no_grad():
         prediction = model(t)
-        p_index = prediction.argmax().item()
+        p_index = torch.argmax(prediction).item()
         predicted_value = prediction[0, p_index]
-
-        # Определяем имя диагноза.
-        diagnosis = CLASSES[p_index]
-
-        diagnosis = f"{diagnosis} - {p_index}"
-
-        if predicted_value < 0.6:
-            diagnosis = "Диагноз не установлен."
 
         # Формируем тело отчёта.
         report += "<div class=\"card\">"
@@ -146,7 +138,7 @@ def predict():
         report += "</div>"
         
         report += "<div class=\"content\">"
-        report += f"<div class=\"prediction\"><span class=\"light-gray-text\">Диагноз:</span> {diagnosis}</div>"
+        report += f"<div class=\"prediction\"><span class=\"light-gray-text\">Диагноз:</span> {CATEGORIES[p_index]}</div>"
         report += f"<div class=\"predicted_value\"><span class=\"light-gray-text\">Предсказанное значение:</span> {predicted_value:.4f}</div>"
         report += "</div>"
 
