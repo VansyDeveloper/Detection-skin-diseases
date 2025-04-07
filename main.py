@@ -72,7 +72,7 @@ model = Model(
     affine=AFFINE,
 ).to(DEVICE)
 
-checkpoint = torch.load("./model.pt", weights_only = True)
+checkpoint = torch.load("./model.pt", map_location=DEVICE, weights_only=True)
 model.load_state_dict(checkpoint['model.state_dict'])
 
 model.eval()
@@ -133,7 +133,7 @@ def predict():
         # Определяем имя диагноза.
         diagnosis = CLASSES[p_index]
 
-        diagnosis = f"{diagnosis} - {p_index}"
+        diagnosis = diagnosis
 
         if predicted_value < 0.6:
             diagnosis = "Диагноз не установлен."
@@ -147,7 +147,7 @@ def predict():
         
         report += "<div class=\"content\">"
         report += f"<div class=\"prediction\"><span class=\"light-gray-text\">Диагноз:</span> {diagnosis}</div>"
-        report += f"<div class=\"predicted_value\"><span class=\"light-gray-text\">Предсказанное значение:</span> {predicted_value:.4f}</div>"
+        #report += f"<div class=\"predicted_value\"><span class=\"light-gray-text\">Предсказанное значение:</span> {predicted_value:.4f}</div>"
         report += "</div>"
 
         report += "</div>"
