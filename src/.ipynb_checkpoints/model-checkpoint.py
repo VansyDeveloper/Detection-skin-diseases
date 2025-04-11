@@ -47,7 +47,7 @@ class ResidualBlock(nn.Module):
         scale_factor (float, default = 1): Фактор уменьшения размера количества слоев меду входной и выходной свёртками.
         dropout (float, default = 0.0): Вероятность dropout.
         normalization (str, "batch" or "group"): Тип нормализации.
-        num_groups (int, default 16): Количество групп.
+        num_groups (int, default None): Количество групп.
         momentum (float, default 0.1): Значение, используемое для вычисления скользящего среднего (running_mean)
             и скользящей дисперсии (running_var). Может быть установлено в None для накопительного подсчета
             среднего значения (то есть простого среднего).
@@ -59,11 +59,11 @@ class ResidualBlock(nn.Module):
             self,
             in_channels: int,
             out_channels: int,
-            activation: str = "relu",
+            activation: str = "silu",
             scale_factor: int = 4,
             dropout: float = 0.0,
             normalization: str = "group",
-            num_groups: int = 16,
+            num_groups: int = 32,
             momentum: float = 0.1,
             eps: float = 1e-5,
             affine: bool = True,
@@ -210,18 +210,16 @@ class Model(nn.Module):
         )
         nn.init.normal_(conv.weight, 0.0, 0.02)
         self.blocks.append(conv)
-
-        self.norm2 = get_normalization(
+        self.blocks.append(get_normalization(
             normalization=normalization,
             num_channels=in_channels,
             num_groups=num_groups,
             eps=eps,
             momentum=momentum,
             affine=affine,
-        )         
-
+        ))
         self.blocks.append(activation_fn)
-        self.blocks.append(nn.MaxPool2d(2))
+        # self.blocks.append(nn.MaxPool2d(2))
         
         # Ступени и блоки свёртки.
         for level_index, level in enumerate(blocks):
@@ -232,7 +230,6 @@ class Model(nn.Module):
                         out_channels=out_channels,
                         activation=activation,
                         dropout=dropout,
-
                         normalization=normalization,
                         num_groups=num_groups,
                         momentum=momentum,
@@ -241,23 +238,35 @@ class Model(nn.Module):
                     )
                 )
                 in_channels = out_channels
+
+            # Закрываем последний блок.
+            self.blocks.append(get_normalization(
+                normalization=normalization,
+                num_channels=out_channels,
+                num_groups=num_groups,
+                eps=eps,
+                momentum=momentum,
+                affine=affine,
+            ))
+            self.blocks.append(activation_fn)
+
+            # Уменьшение размерности.
             self.blocks.append(nn.MaxPool2d(2))
 
         # Закрываем последний блок.
+        # self.blocks.append(get_normalization(
+        #     normalization=normalization,
+        #     num_channels=out_channels,
+        #     num_groups=num_groups,
+        #     eps=eps,
+        #     momentum=momentum,
+        #     affine=affine,
+        # ))
 
-        self.norm2 = get_normalization(
-            normalization=normalization,
-            num_channels=out_channels,
-            num_groups=num_groups,
-            eps=eps,
-            momentum=momentum,
-            affine=affine,
-        )         
-
-        self.blocks.append(activation_fn)
+        # self.blocks.append(activation_fn)
 
         # Уменьшаем размерность карт признаков в два раза.
-        self.blocks.append(nn.MaxPool2d(2))
+        # self.blocks.append(nn.MaxPool2d(2))
 
         self.fc = nn.Linear(out_channels, num_classes, bias=False)
         nn.init.normal_(self.fc.weight, 0.0, 0.02)
@@ -277,9 +286,9 @@ class Model(nn.Module):
 
         # Вычисляем вероятность с помощью полносвязного слоя.
         x = self.fc(x)
-        x = self.softmax(x)
+        logits = self.softmax(x)
         
-        return x
+        return logits
 
 if __name__ == "__main__":
     from torchinfo import summary

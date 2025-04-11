@@ -21,8 +21,9 @@ CATEGORIES = [
     "Угревая сыпь или розацея.",
     "Актинический кератоз, базалиома и другие злокачественные новообразования.",
     "Атопический дерматит.",
+    "Диагноз не установлен.",
 ]
-NUM_CLASSES = 3
+NUM_CLASSES = 4
 SAMPLE_SIZE = 128
 UPLOAD_FOLDER = "static/uploads"
 
@@ -31,7 +32,7 @@ app = Flask(__name__, static_folder="static")
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Ограничение размера загружаемых файлов (16 МБ)
 
-# Модель
+# Модель для классификации заболеваний
 model = Model(
     num_classes=NUM_CLASSES,
     blocks=[[64, 64, 64, 128], [128, 128, 128, 128, 256], [256, 256, 256, 256, 256, 256]],
@@ -48,7 +49,7 @@ checkpoint = torch.load("./model.pt", map_location=DEVICE, weights_only=True)
 model.load_state_dict(checkpoint['model.state_dict'])
 model.eval()
 
-# Модели OpenCV
+# Модели OpenCV для анализа пола и возраста
 FACE_WEIGHTS = "opencv_face_detector.pbtxt"
 FACE_MODEL = "opencv_face_detector_uint8.pb"
 GENDER_PROTO = "gender_deploy.prototxt"
@@ -65,10 +66,11 @@ if face_network.empty() or gender_network.empty() or age_network.empty():
     raise ValueError("Не удалось загрузить модели OpenCV.")
 
 MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
-GENDER_LIST = ['Мужкой', 'Женский']
+GENDER_LIST = ['Мужской', 'Женский']
 AGE_LIST = ['(0-2)', '(4-6)', '(8-12)', '(15-20)', '(25-32)', '(38-43)', '(48-53)', '(60-100)']
 
 def analyze_gender_and_age(image):
+    """Анализирует пол и возраст на изображении."""
     image_cv = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     height, width = image_cv.shape[:2]
     blob = cv2.dnn.blobFromImage(image_cv, 1.0, (300, 300), [104, 117, 123], True, False)
@@ -151,22 +153,28 @@ def predict():
                 t = t.unsqueeze(dim=0)
 
                 # Предсказание заболевания
-                #with torch.no_grad():
                 prediction = model(t)
                 p_index = torch.argmax(prediction).item()
                 predicted_value = prediction[0, p_index]
-
+                
+                # Определяем имя диагноза
+                diagnosis = CATEGORIES[p_index]
+                
+                # Проверяем пороговое значение
+                if predicted_value < 0.6:
+                    diagnosis = "Диагноз не установлен."
+                
                 # Анализ пола и возраста
                 image_cv = cv2.cvtColor(cv2.imread(saved_filename), cv2.COLOR_BGR2RGB)
                 gender, age = analyze_gender_and_age(image_cv)
-
+                
                 # Формируем тело отчёта
                 report += "<div class=\"card\">"
                 report += "<div class=\"image_area\">"
-                report += f"<img src=\"{saved_filename}\" />"
+                report += f"<img src=\"/{saved_filename}\" />"
                 report += "</div>"
                 report += "<div class=\"content\">"
-                report += f"<div class=\"prediction\"><span class=\"light-gray-text\">Диагноз:</span> {CATEGORIES[p_index]}</div>"
+                report += f"<div class=\"prediction\"><span class=\"light-gray-text\">Диагноз:</span> {diagnosis}</div>"
                 report += f"<div class=\"predicted_value\"><span class=\"light-gray-text\">Предсказанное значение:</span> {predicted_value:.4f}</div>"
                 report += f"<div class=\"gender\"><span class=\"light-gray-text\">Пол:</span> {gender}</div>"
                 report += f"<div class=\"age\"><span class=\"light-gray-text\">Возраст:</span> {age} лет</div>"
