@@ -89,7 +89,7 @@ model = Model(
     affine=AFFINE,
 ).to(DEVICE)
 
-checkpoint = torch.load("./model.pt", weights_only = True)
+checkpoint = checkpoint = torch.load("./model.pt", map_location=torch.device('cpu'), weights_only=True)
 model.load_state_dict(checkpoint['model.state_dict'])
 
 model.eval()
